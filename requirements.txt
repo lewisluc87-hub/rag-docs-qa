@@ -1,0 +1,9 @@
+chromadb==1.5.9
+
+# Dev/test only -- powers the offline TF-IDF fallback embedder used when
+# the real embedding model can't be downloaded (see dev_embeddings.py).
+# Not required for production use once the real embedding model is cached.
+scikit-learn==1.8.0
+
+pytest==9.1.1
+ruff==0.16.6
