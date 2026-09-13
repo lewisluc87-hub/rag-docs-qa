@@ -1,3 +1,10 @@
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+
+[tool.pytest.ini_options]
+# Without this, root-level modules (chunking.py, scoring.py, dev_embeddings.py)
+# aren't importable from tests/ when pytest is invoked as a plain `pytest`
+# console script (only `python -m pytest` adds CWD to sys.path automatically).
+# This makes root-module imports work regardless of invocation style.
+pythonpath = ["."]
