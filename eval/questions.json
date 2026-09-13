@@ -1,0 +1,170 @@
+{
+  "_notes": "Every expected_chunk_ids entry was verified by grep against the actual docs/ text in this repo, not written from memory of the source projects. Several originally-planned questions were dropped or moved between sets after that check found they didn't hold up -- see README.md 'Building the eval set' for the specific examples and why that check matters.",
+
+  "answerable_single_doc": [
+    {
+      "id": "sd-01",
+      "question": "What flag identifies a stable, unique item across scraper monitor runs, and what's the fallback if you don't set it?",
+      "expected_chunk_ids": ["web-scraper/README.md#124-133"],
+      "notes": "Tests retrieval of the --key-field mechanism and its content-hash fallback."
+    },
+    {
+      "id": "sd-02",
+      "question": "What does the --srt flag do in yt-transcriber?",
+      "expected_chunk_ids": ["youtube-transcriber/README.md#35-45"]
+    },
+    {
+      "id": "sd-03",
+      "question": "What model does video-to-prompt use for object detection, and is it required?",
+      "expected_chunk_ids": ["video-to-prompt/SPEC.md#72-86::part1"],
+      "notes": "YOLOv8n via ultralytics, optional extra with a coarser heuristic fallback. Verified this IS documented before including it here -- an earlier draft of the adversarial set wrongly assumed it wasn't."
+    },
+    {
+      "id": "sd-04",
+      "question": "What speech-to-text tool does video-to-prompt use for its audio transcription stage?",
+      "expected_chunk_ids": ["video-to-prompt/SPEC.md#143-147::part2"]
+    },
+    {
+      "id": "sd-05",
+      "question": "What resolution and framerate does the waveform generator's headless CLI renderer produce?",
+      "expected_chunk_ids": ["waveform-generator/README.md#48-56::part2"]
+    },
+    {
+      "id": "sd-06",
+      "question": "What real bug did flagship-pipeline find related to file overwriting on Windows, and how was it fixed?",
+      "expected_chunk_ids": ["flagship-pipeline/README.md#94-110::part1"]
+    },
+    {
+      "id": "sd-07",
+      "question": "What public site is used as the demo target for the web scraper?",
+      "expected_chunk_ids": ["web-scraper/README.md#63-72"]
+    },
+    {
+      "id": "sd-08",
+      "question": "How many tests does flagship-pipeline have, and what mix of unit vs integration tests?",
+      "expected_chunk_ids": ["flagship-pipeline/README.md#80-93"]
+    },
+    {
+      "id": "sd-09",
+      "question": "In the web scraper's config format, what field controls whether a page is fetched as plain HTML or JS-rendered?",
+      "expected_chunk_ids": ["web-scraper/README.md#50-62::part2"]
+    },
+    {
+      "id": "sd-10",
+      "question": "Does yt-transcriber's test suite need network access to run?",
+      "expected_chunk_ids": ["youtube-transcriber/README.md#67-74"]
+    },
+    {
+      "id": "sd-11",
+      "question": "What environment variable does video2prompt read its Anthropic API key from?",
+      "expected_chunk_ids": ["video-to-prompt/SPEC.md#255-261", "video-to-prompt/README.md#47-58::part2"],
+      "notes": "Documented in two places (SPEC Configuration section and README Install section) -- either counts as a correct retrieval."
+    },
+    {
+      "id": "sd-12",
+      "question": "Does the web scraper support infinite-scroll pagination, or only next-link-based pagination?",
+      "expected_chunk_ids": ["web-scraper/README.md#37-49::part1"],
+      "notes": "Only next_page_selector-based pagination is documented -- no infinite-scroll/JS-triggered-load support. A good answer should say so explicitly rather than assuming 'pagination support' implies infinite scroll."
+    }
+  ],
+
+  "answerable_cross_doc": [
+    {
+      "id": "cd-01",
+      "question": "Two separate tools in this portfolio both use faster-whisper for speech-to-text. Which two, and what's each one's purpose for it?",
+      "expected_chunk_ids": [
+        "video-to-prompt/SPEC.md#143-147::part2",
+        "youtube-transcriber/README.md#5-23"
+      ],
+      "notes": "video-to-prompt: per-shot context transcription for the CV pipeline. youtube-transcriber: fallback for videos with no captions."
+    },
+    {
+      "id": "cd-02",
+      "question": "Which two tools require an ANTHROPIC_API_KEY, and what does each one use it for?",
+      "expected_chunk_ids": [
+        "video-to-prompt/README.md#47-58::part2",
+        "youtube-transcriber/README.md#46-62"
+      ],
+      "notes": "video-to-prompt: LLM reasoning layer for scene descriptions. youtube-transcriber: optional AI summary generation."
+    },
+    {
+      "id": "cd-03",
+      "question": "Three different tools in this portfolio all require ffmpeg on PATH. What does each one actually use it for?",
+      "expected_chunk_ids": [
+        "video-to-prompt/SPEC.md#72-86::part1",
+        "flagship-pipeline/README.md#13-22",
+        "waveform-generator/README.md#39-47::part1"
+      ],
+      "notes": "video-to-prompt: video I/O/probing. flagship-pipeline: demuxing audio straight out of the downloaded mp4. waveform-generator: required alongside @napi-rs/canvas for headless rendering."
+    },
+    {
+      "id": "cd-04",
+      "question": "Of the five tools in this corpus, which one does NOT use pytest for its tests, and what does it use instead?",
+      "expected_chunk_ids": [
+        "waveform-generator/README.md#25-32"
+      ],
+      "notes": "waveform-generator uses Node's built-in `node --test` for its signal-processing logic. Answering this correctly requires the retriever to effectively rule out the other four (all pytest-based), which is why it's cross-doc rather than single-doc despite one expected chunk."
+    },
+    {
+      "id": "cd-05",
+      "question": "Which three of these five READMEs have an explicit 'Verified' section documenting a real end-to-end run against real external content (not mocks), and what did each verify?",
+      "expected_chunk_ids": [
+        "video-to-prompt/README.md#148-152",
+        "flagship-pipeline/README.md#94-110::part1",
+        "web-scraper/README.md#153-170::part1"
+      ],
+      "notes": "youtube-transcriber and waveform-generator have testing sections but no equivalent 'Verified against real content' section -- confirmed by checking every heading in the corpus, not assumed."
+    }
+  ],
+
+  "adversarial_out_of_scope": [
+    {
+      "id": "adv-01",
+      "question": "What testing framework does the ai-council repo use?",
+      "expected_chunk_ids": [],
+      "notes": "ai-council is a real repo in the broader portfolio but was NOT ingested into this corpus. A correct system says so rather than guessing pytest by pattern-matching the other repos."
+    },
+    {
+      "id": "adv-02",
+      "question": "Why did the project switch from node-canvas to @napi-rs/canvas?",
+      "expected_chunk_ids": [],
+      "notes": "Verified by direct search: @napi-rs/canvas is mentioned (waveform-generator's requirements), but the reasoning for switching from node-canvas is NOT documented anywhere in the ingested corpus -- it only exists in prior session history, which isn't part of this corpus. This was originally proposed as a real cross-doc example question before that check was done."
+    },
+    {
+      "id": "adv-03",
+      "question": "What CI/CD provider does the MileWise spreadsheet product use?",
+      "expected_chunk_ids": [],
+      "notes": "MileWise is a different project entirely, not part of this corpus."
+    },
+    {
+      "id": "adv-04",
+      "question": "How much does a Viral Analyzer Pro subscription cost?",
+      "expected_chunk_ids": [],
+      "notes": "Unrelated product, not part of this corpus."
+    },
+    {
+      "id": "adv-05",
+      "question": "What cloud provider or Kubernetes setup does flagship-pipeline use to run in production?",
+      "expected_chunk_ids": [],
+      "notes": "flagship-pipeline is a local orchestration script (README explicitly documents local requirements only: Python, Node.js, ffmpeg on PATH). No deployment/cloud/k8s content exists anywhere in its docs."
+    },
+    {
+      "id": "adv-06",
+      "question": "Which vector database does this RAG project itself use for storing embeddings?",
+      "expected_chunk_ids": [],
+      "notes": "Meta trap: this RAG system ingests OTHER repos' docs, not its own README/code. Its own implementation details (Chroma, etc.) are not part of the ingested corpus."
+    },
+    {
+      "id": "adv-07",
+      "question": "What license does the ai-council repo use?",
+      "expected_chunk_ids": [],
+      "notes": "ai-council not ingested -- distinct from adv-01 to check the system doesn't inconsistently answer different questions about the same out-of-scope repo."
+    },
+    {
+      "id": "adv-08",
+      "question": "Can video2prompt process a whole folder of video files in a single batch command?",
+      "expected_chunk_ids": [],
+      "notes": "Deliberately subtle: the SPEC does mention batching, but only shots WITHIN a single video for the LLM reasoning layer's concurrency (SPEC.md#148-155::part1), not multi-file/multi-video batch input. A shallow keyword-matching grounding check could be fooled by 'batch' appearing in a retrieved chunk; a correct answer distinguishes the two meanings of 'batch' or states multi-file batch input isn't documented."
+    }
+  ]
+}
