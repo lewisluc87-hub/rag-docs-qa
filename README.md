@@ -1,4 +1,5 @@
 # rag-docs-qa
+[![CI](https://github.com/lewisluc87-hub/rag-docs-qa/actions/workflows/ci.yml/badge.svg)](https://github.com/lewisluc87-hub/rag-docs-qa/actions/workflows/ci.yml)
 
 A retrieval-augmented Q&A system over this portfolio's own project docs,
 built with an eval harness that actually measures retrieval quality and
