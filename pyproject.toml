@@ -8,3 +8,4 @@ target-version = "py312"
 # console script (only `python -m pytest` adds CWD to sys.path automatically).
 # This makes root-module imports work regardless of invocation style.
 pythonpath = ["."]
+asyncio_mode = "auto"
