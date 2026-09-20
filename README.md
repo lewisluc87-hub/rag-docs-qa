@@ -86,13 +86,86 @@ python ingest.py
 python ingest.py --dev-tfidf
 ```
 
+## MCP server
+
+`mcp_server.py` exposes the retrieval pipeline as an MCP server, so any
+MCP client (Claude Desktop, etc.) can query this portfolio's docs
+directly. It wraps `ingest.py`/`chunking.py` rather than reimplementing
+retrieval -- a fix to the chunker applies here automatically.
+
+**Tools exposed:**
+- `ask_portfolio(question, k=3)` -- retrieval-only: returns the top-k
+  matched source passages (repo, section heading, text), not a
+  generated answer. Wiring in a live Claude call for generation is a
+  natural v2, gated on an `ANTHROPIC_API_KEY` being available to this
+  process, which this dev sandbox didn't have -- mirrors the eval
+  harness's own not-yet-built `--with-generation` flag.
+- `list_indexed_repos()` -- which of the 5 repos are indexed and how
+  many chunks each contributes.
+- `get_eval_summary()` -- the most recent `eval/eval_report.md`, so a
+  live MCP client can see the eval harness's own results rather than
+  needing someone to go find the file.
+
+**Run it** (stdio transport, what Claude Desktop expects):
+```bash
+python ingest.py --dev-tfidf        # build the DB first
+python mcp_server.py --dev-tfidf    # embedder flag MUST match ingest's
+```
+
+**Claude Desktop config** (`claude_desktop_config.json`):
+```json
+{
+  "mcpServers": {
+    "rag-docs-qa": {
+      "command": "python",
+      "args": ["/absolute/path/to/rag-docs-qa/mcp_server.py"]
+    }
+  }
+}
+```
+Omit `--dev-tfidf` here once you've built the DB with the real embedder
+(`python ingest.py`, no flag) -- the two must match.
+
+### A breaking SDK change past this project's knowledge cutoff
+
+The installed `mcp` package (2.2.0) renamed `FastMCP` to `MCPServer`
+(`mcp.server.mcpserver.MCPServer`) at some point after this assistant's
+training data -- the old `from mcp.server.fastmcp import FastMCP` import
+that most existing tutorials use raises `ModuleNotFoundError` on this
+version, with the package's own error message pointing to the rename.
+`mcp_server.py` uses the current `MCPServer` API. If you're on an older
+`mcp<2` install, either upgrade or use the migration guide the error
+message links to.
+
+### Verified
+
+- A real client (the `mcp` SDK's own `ClientSession`) driving the actual
+  server as a subprocess over real stdio -- not a mock of the protocol --
+  confirmed: all three tools are correctly listed, `list_indexed_repos`
+  reports all five repos, `ask_portfolio` retrieves the correct passage
+  for a known question (the same one eval question `sd-01` uses),
+  `get_eval_summary` returns a real report once one exists.
+- The server fails fast with a clear error message (not a silent
+  broken server) when the Chroma DB hasn't been built yet.
+- **Found and fixed a real async bug** while writing the integration
+  test: a shared `pytest` fixture that opened the stdio client/session
+  once and `yield`ed it to multiple tests hit `RuntimeError: Attempted
+  to exit cancel scope in a different task than it was entered in`.
+  `mcp`'s stdio client holds an `anyio` `TaskGroup` open for the
+  connection's lifetime, and `anyio` cancel scopes are task-bound --
+  under `pytest-asyncio`, a shared async-generator fixture's teardown
+  can run in a different task than its setup, which `anyio` rejects.
+  Fixed by having each test open and fully close its own session
+  within one task (`tests/test_mcp_server.py`'s `open_session()`
+  helper) instead of sharing one across tests.
+
 ## Running the tests
 
 ```bash
 pytest -q
 ```
 
-29 tests:
+34 tests:
 - `test_chunking.py` -- pure logic, synthetic fixtures. Includes the
   hash-comment-in-fence regression case and the oversized-paragraph
   edge case.
@@ -104,11 +177,19 @@ pytest -q
   splitting, chunk IDs are unique across the whole corpus, metadata
   survives the round-trip through Chroma, and re-running ingest doesn't
   leave stale chunks behind.
+- `test_mcp_server.py` -- drives the real MCP server as a subprocess
+  over real stdio with the official `mcp` client, not a protocol mock.
+  Requires the Chroma DB to already be built (`python ingest.py
+  --dev-tfidf`) before running -- see [MCP server](#mcp-server).
 
-CI (`ruff check .` + `pytest -q`) also runs a full offline smoke test of
-`ingest.py --dev-tfidf` followed by `eval/run_eval.py --dev-tfidf` on
-every push, so a broken end-to-end pipeline fails CI, not just broken
-unit tests.
+**Note:** `test_mcp_server.py` needs `chroma_db/` to already exist, so
+run `python ingest.py --dev-tfidf` (and, for the full report path,
+`python eval/run_eval.py --dev-tfidf`) before `pytest -q` -- this is
+also why CI builds those first and runs `pytest` last, not the reverse.
+
+CI (`ruff check .` + build the offline DB/eval report + `pytest -q`)
+runs on every push, so a broken end-to-end pipeline fails CI, not just
+broken unit tests.
 
 ## Eval harness
 
